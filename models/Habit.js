@@ -28,6 +28,10 @@ const habitSchema = new mongoose.Schema(
       trim: true,
       maxlength: [200, 'Reward cannot exceed 200 characters'],
     },
+    startDate: {
+      type: Date,
+      default: Date.now,
+    },
   },
   {
     timestamps: true, // This adds createdAt and updatedAt automatically
