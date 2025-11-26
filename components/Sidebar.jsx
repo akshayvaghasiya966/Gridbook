@@ -7,6 +7,7 @@ import {
   Moon, 
   BookOpen, 
   AlertCircle,
+  CheckSquare,
   Menu,
   X,
   LogOut
@@ -22,6 +23,7 @@ const navigationItems = [
   { path: '/sleep', label: 'Sleep', icon: Moon },
   { path: '/journal', label: 'Journal', icon: BookOpen },
   { path: '/mistakes', label: 'Mistakes', icon: AlertCircle },
+  { path: '/todos', label: 'Todos', icon: CheckSquare },
 ]
 
 const Sidebar = ({ children }) => {

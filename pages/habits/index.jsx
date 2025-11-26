@@ -552,7 +552,7 @@ const index = () => {
                   <TableRow className="bg-gray-50 dark:bg-gray-900/50">
                     <TableHead className="font-semibold">Name</TableHead>
                     <TableHead className="font-semibold">Reason</TableHead>
-                    <TableHead className="font-semibold">Duration</TableHead>
+                    <TableHead className="font-semibold whitespace-nowrap">Duration</TableHead>
                     <TableHead className="font-semibold text-center">Last 5</TableHead>
                     <TableHead className="font-semibold text-center">Consistency</TableHead>
                     <TableHead className="font-semibold">Reward</TableHead>
@@ -571,8 +571,8 @@ const index = () => {
                         <TableCell className="max-w-xs">
                           <p className="truncate" title={habit.reason}>{habit.reason}</p>
                         </TableCell>
-                        <TableCell>
-                          <span className="px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium border border-primary/20">
+                        <TableCell className="whitespace-nowrap">
+                          <span className="inline-flex px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium border border-primary/20 whitespace-nowrap">
                             {getDurationLabel(habit.duration)}
                           </span>
                         </TableCell>
