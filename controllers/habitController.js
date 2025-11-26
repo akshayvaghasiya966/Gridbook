@@ -101,7 +101,13 @@ const calculateConsistency = async (habit) => {
 export const getAllHabits = async (req, res) => {
   try {
     await connectDB()
-    const habits = await Habit.find({}).sort({ createdAt: -1 })
+    const userId = req.userId
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
+    
+    const habits = await Habit.find({ user: userId }).sort({ createdAt: -1 })
     
     // Calculate consistency and last 5 days for each habit
     const habitsWithConsistency = await Promise.all(
@@ -162,7 +168,12 @@ export const getHabitById = async (req, res) => {
 export const createHabit = async (req, res) => {
   try {
     await connectDB()
+    const userId = req.userId
     const { name, reason, duration, reward } = req.body
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
 
     // Validation
     if (!name || !reason || !duration || !reward) {
@@ -170,6 +181,7 @@ export const createHabit = async (req, res) => {
     }
 
     const habit = new Habit({
+      user: userId,
       name,
       reason,
       duration,
@@ -203,8 +215,13 @@ export const createHabit = async (req, res) => {
 export const updateHabit = async (req, res) => {
   try {
     await connectDB()
+    const userId = req.userId
     const { id } = req.query
     const { name, reason, duration, reward } = req.body
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: 'Invalid habit ID' })
@@ -215,8 +232,8 @@ export const updateHabit = async (req, res) => {
       return res.status(400).json({ error: 'All fields are required' })
     }
 
-    const habit = await Habit.findByIdAndUpdate(
-      id,
+    const habit = await Habit.findOneAndUpdate(
+      { _id: id, user: userId },
       {
         name,
         reason,
@@ -259,13 +276,18 @@ export const updateHabit = async (req, res) => {
 export const deleteHabit = async (req, res) => {
   try {
     await connectDB()
+    const userId = req.userId
     const { id } = req.query
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: 'Invalid habit ID' })
     }
 
-    const habit = await Habit.findByIdAndDelete(id)
+    const habit = await Habit.findOneAndDelete({ _id: id, user: userId })
 
     if (!habit) {
       return res.status(404).json({ error: 'Habit not found' })

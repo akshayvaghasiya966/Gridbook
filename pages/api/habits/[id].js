@@ -1,6 +1,7 @@
 import { getHabitById, updateHabit, deleteHabit } from '@/controllers/habitController'
+import { authenticate } from '@/middleware/auth'
 
-export default async function handler(req, res) {
+export default authenticate(async function handler(req, res) {
   if (req.method === 'GET') {
     return getHabitById(req, res)
   }
@@ -15,4 +16,4 @@ export default async function handler(req, res) {
 
   res.setHeader('Allow', ['GET', 'PUT', 'DELETE'])
   return res.status(405).json({ error: `Method ${req.method} not allowed` })
-}
+})

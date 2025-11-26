@@ -53,6 +53,7 @@ const calculateConsistency = async (habit) => {
 
   // Get all tracking entries for this habit within validity period
   const allTracking = await HabitTracking.find({
+    user: habit.user,
     habit: habit._id,
     date: {
       $gte: startDate,
@@ -77,12 +78,19 @@ const calculateConsistency = async (habit) => {
 export const getTodayTracking = async (req, res) => {
   try {
     await connectDB()
+    const userId = req.userId
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
+    
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
 
     const tracking = await HabitTracking.find({
+      user: userId,
       date: {
         $gte: today,
         $lt: tomorrow,
@@ -115,15 +123,20 @@ export const getTodayTracking = async (req, res) => {
 export const updateTodayTracking = async (req, res) => {
   try {
     await connectDB()
+    const userId = req.userId
     const { id } = req.query
     const { isDone } = req.body
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: 'Invalid tracking ID' })
     }
 
     // Get the tracking entry
-    const tracking = await HabitTracking.findById(id).populate('habit')
+    const tracking = await HabitTracking.findOne({ _id: id, user: userId }).populate('habit')
     if (!tracking) {
       return res.status(404).json({ error: 'Tracking entry not found' })
     }
@@ -153,13 +166,19 @@ export const updateTodayTracking = async (req, res) => {
 export const createDailyEntries = async (req, res) => {
   try {
     await connectDB()
+    const userId = req.userId
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
+    
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
 
-    // Get all habits
-    const habits = await Habit.find({})
+    // Get all habits for the user
+    const habits = await Habit.find({ user: userId })
 
     const createdEntries = []
     const skippedEntries = []
@@ -195,6 +214,7 @@ export const createDailyEntries = async (req, res) => {
 
       // Create new entry
       const newEntry = new HabitTracking({
+        user: userId,
         habit: habit._id,
         date: today,
         isDone: false,
@@ -223,13 +243,21 @@ export const createDailyEntries = async (req, res) => {
 export const getHabitTrackingHistory = async (req, res) => {
   try {
     await connectDB()
+    const userId = req.userId
     const { habitId } = req.query
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' })
+    }
 
     if (!mongoose.Types.ObjectId.isValid(habitId)) {
       return res.status(400).json({ error: 'Invalid habit ID' })
     }
 
-    const tracking = await HabitTracking.find({ habit: habitId })
+    const tracking = await HabitTracking.find({ 
+      user: userId,
+      habit: habitId 
+    })
       .sort({ date: -1 })
       .limit(30) // Last 30 entries
 

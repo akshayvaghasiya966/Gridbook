@@ -2,6 +2,11 @@ import mongoose from 'mongoose'
 
 const habitTrackingSchema = new mongoose.Schema(
   {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'User is required'],
+    },
     habit: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Habit',
@@ -23,7 +28,7 @@ const habitTrackingSchema = new mongoose.Schema(
 )
 
 // Index for efficient queries
-habitTrackingSchema.index({ habit: 1, date: 1 }, { unique: true })
+habitTrackingSchema.index({ user: 1, habit: 1, date: 1 }, { unique: true })
 
 // Prevent model recompilation during development
 const HabitTracking = mongoose.models.HabitTracking || mongoose.model('HabitTracking', habitTrackingSchema)

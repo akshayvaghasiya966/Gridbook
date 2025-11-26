@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Trash2, Plus, Check, TrendingUp, X, Minus } from 'lucide-react'
+import { Trash2, Plus, Check, TrendingUp, X, Minus, LogOut, User } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Pagination,
@@ -37,6 +37,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
+import LoginDialog from '@/components/auth/LoginDialog'
+import { getToken, getUser, clearAuth, getAuthHeaders } from '@/lib/auth'
 
 const ITEMS_PER_PAGE = 5
 
@@ -46,6 +48,9 @@ const index = () => {
   const [loading, setLoading] = useState(true)
   const [trackingLoading, setTrackingLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [user, setUser] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [formData, setFormData] = useState({
     name: '',
@@ -54,11 +59,39 @@ const index = () => {
     reward: ''
   })
 
+  // Check authentication on mount
+  useEffect(() => {
+    const token = getToken()
+    const userData = getUser()
+    
+    if (token && userData) {
+      setIsAuthenticated(true)
+      setUser(userData)
+      fetchHabits()
+      fetchTodayTracking()
+    } else {
+      setLoginDialogOpen(true)
+      setLoading(false)
+    }
+  }, [])
+
   // Fetch habits from MongoDB
   const fetchHabits = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/habits')
+      const response = await fetch('/api/habits', {
+        headers: getAuthHeaders(),
+      })
+      
+      if (response.status === 401) {
+        // Unauthorized - clear auth and show login
+        clearAuth()
+        setIsAuthenticated(false)
+        setUser(null)
+        setLoginDialogOpen(true)
+        return
+      }
+      
       if (response.ok) {
         const data = await response.json()
         setHabits(data)
@@ -74,7 +107,14 @@ const index = () => {
   const fetchTodayTracking = async () => {
     try {
       setTrackingLoading(true)
-      const response = await fetch('/api/habits/tracking')
+      const response = await fetch('/api/habits/tracking', {
+        headers: getAuthHeaders(),
+      })
+      
+      if (response.status === 401) {
+        return
+      }
+      
       if (response.ok) {
         const data = await response.json()
         setTracking(data)
@@ -86,10 +126,22 @@ const index = () => {
     }
   }
 
-  useEffect(() => {
+  const handleLoginSuccess = (token, userData) => {
+    setIsAuthenticated(true)
+    setUser(userData)
+    setLoginDialogOpen(false)
     fetchHabits()
     fetchTodayTracking()
-  }, [])
+  }
+
+  const handleLogout = () => {
+    clearAuth()
+    setIsAuthenticated(false)
+    setUser(null)
+    setHabits([])
+    setTracking([])
+    setLoginDialogOpen(true)
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -117,18 +169,19 @@ const index = () => {
 
     try {
       // Create new habit
-      const response = await fetch('/api/habits', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
+        const response = await fetch('/api/habits', {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(formData),
+        })
 
       if (response.ok) {
         await fetchHabits()
-        // Create today's tracking entry for the new habit
-        await fetch('/api/habits/tracking', { method: 'POST' })
+          // Create today's tracking entry for the new habit
+          await fetch('/api/habits/tracking', { 
+            method: 'POST',
+            headers: getAuthHeaders(),
+          })
         await fetchTodayTracking()
         setCurrentPage(1)
         resetForm()
@@ -143,6 +196,7 @@ const index = () => {
       try {
         const response = await fetch(`/api/habits/${id}`, {
           method: 'DELETE',
+          headers: getAuthHeaders(),
         })
 
         if (response.ok) {
@@ -197,9 +251,7 @@ const index = () => {
     try {
       const response = await fetch(`/api/habits/tracking/${trackingId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ isDone: !currentStatus }),
       })
 
@@ -219,6 +271,7 @@ const index = () => {
     try {
       const response = await fetch('/api/habits/tracking', {
         method: 'POST',
+        headers: getAuthHeaders(),
       })
       if (response.ok) {
         await fetchTodayTracking()
@@ -300,20 +353,57 @@ const index = () => {
     )
   }
 
-  return (
-    <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
-        <div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">Habits</h1>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Track and manage your daily habits</p>
+  if (!isAuthenticated) {
+    return (
+      <>
+        <LoginDialog
+          open={loginDialogOpen}
+          onOpenChange={setLoginDialogOpen}
+          onLoginSuccess={handleLoginSuccess}
+        />
+        <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
+          <div className="text-center py-12">
+            <div className="max-w-md mx-auto">
+              <h1 className="text-2xl font-bold mb-4">Welcome to Gridbook</h1>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Please sign in to access your habits
+              </p>
+              <Button onClick={() => setLoginDialogOpen(true)} size="lg">
+                Sign In / Sign Up
+              </Button>
+            </div>
+          </div>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => resetForm()} size="lg" className="shadow-md w-full sm:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Habit
-            </Button>
-          </DialogTrigger>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <LoginDialog
+        open={loginDialogOpen}
+        onOpenChange={setLoginDialogOpen}
+        onLoginSuccess={handleLoginSuccess}
+      />
+      <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+          <div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">Habits</h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+              Track and manage your daily habits
+              {user && (
+                <span className="ml-2 text-xs">• {user.email}</span>
+              )}
+            </p>
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => resetForm()} size="lg" className="shadow-md flex-1 sm:flex-none">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Habit
+                </Button>
+              </DialogTrigger>
           <DialogContent className="w-[95vw] max-w-[500px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Habit</DialogTitle>
@@ -395,7 +485,17 @@ const index = () => {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              size="lg"
+              className="shrink-0"
+              title="Logout"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
 
       {loading ? (
         <div className="text-center py-12">
@@ -743,7 +843,8 @@ const index = () => {
           </>
         )}
       </div>
-    </div>
+      </div>
+    </>
   )
 }
 
