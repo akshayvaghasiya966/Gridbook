@@ -8,10 +8,12 @@ import {
   BookOpen, 
   AlertCircle,
   Menu,
-  X
+  X,
+  LogOut
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { clearAuth } from '@/lib/auth'
 
 const navigationItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -49,6 +51,11 @@ const Sidebar = ({ children }) => {
     if (isMobile) {
       setIsMobileMenuOpen(false)
     }
+  }
+
+  const handleLogout = () => {
+    clearAuth()
+    router.push('/login')
   }
 
   const NavItem = ({ item, isActive }) => {
@@ -92,6 +99,18 @@ const Sidebar = ({ children }) => {
               )
             })}
           </nav>
+
+          {/* Logout Button */}
+          <div className="px-4 py-4 border-t border-sidebar-border">
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            >
+              <LogOut className="w-5 h-5" />
+              <span>Logout</span>
+            </Button>
+          </div>
         </div>
       </aside>
 
@@ -146,6 +165,21 @@ const Sidebar = ({ children }) => {
                   )
                 })}
               </nav>
+
+              {/* Mobile Logout Button */}
+              <div className="px-4 py-4 border-t border-sidebar-border">
+                <Button
+                  onClick={() => {
+                    handleLogout()
+                    setIsMobileMenuOpen(false)
+                  }}
+                  variant="outline"
+                  className="w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span>Logout</span>
+                </Button>
+              </div>
             </div>
           </aside>
         </>

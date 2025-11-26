@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Trash2, Plus, Check, TrendingUp, X, Minus, LogOut, User, AlertTriangle } from 'lucide-react'
+import { Trash2, Plus, Check, TrendingUp, X, Minus, User, AlertTriangle } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Pagination,
@@ -149,14 +149,6 @@ const index = () => {
     fetchTodayTracking()
   }
 
-  const handleLogout = () => {
-    clearAuth()
-    setIsAuthenticated(false)
-    setUser(null)
-    setHabits([])
-    setTracking([])
-    setLoginDialogOpen(true)
-  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -528,15 +520,6 @@ const index = () => {
             </form>
           </DialogContent>
         </Dialog>
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              size="lg"
-              className="shrink-0"
-              title="Logout"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
           </div>
         </div>
 

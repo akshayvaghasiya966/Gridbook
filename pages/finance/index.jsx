@@ -341,80 +341,78 @@ const Index = () => {
               </DialogHeader>
               <form onSubmit={handleSubmit}>
                 <div className="space-y-4 py-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label htmlFor="date" className="text-sm font-medium">
-                        Date <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        id="date"
-                        name="date"
-                        type="date"
-                        value={formData.date}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="type" className="text-sm font-medium">
-                        Type <span className="text-red-500">*</span>
-                      </label>
-                      <Select value={formData.type} onValueChange={(value) => handleSelectChange('type', value)}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="income">
-                            <div className="flex items-center gap-2">
-                              <ArrowUpRight className="w-4 h-4 text-green-600" />
-                              Income
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="expense">
-                            <div className="flex items-center gap-2">
-                              <ArrowDownRight className="w-4 h-4 text-red-600" />
-                              Expense
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div className="space-y-2">
+                    <label htmlFor="date" className="text-sm font-medium">
+                      Date <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      id="date"
+                      name="date"
+                      type="date"
+                      value={formData.date}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label htmlFor="category" className="text-sm font-medium">
-                        Category <span className="text-red-500">*</span>
-                      </label>
-                      <Select value={formData.category} onValueChange={(value) => handleSelectChange('category', value)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {currentCategories.map((category) => (
-                            <SelectItem key={category} value={category}>
-                              {category}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="amount" className="text-sm font-medium">
-                        Amount <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        id="amount"
-                        name="amount"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={formData.amount}
-                        onChange={handleChange}
-                        placeholder="0.00"
-                        required
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <label htmlFor="type" className="text-sm font-medium">
+                      Type <span className="text-red-500">*</span>
+                    </label>
+                    <Select value={formData.type} onValueChange={(value) => handleSelectChange('type', value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="income">
+                          <div className="flex items-center gap-2">
+                            <ArrowUpRight className="w-4 h-4 text-green-600" />
+                            Income
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="expense">
+                          <div className="flex items-center gap-2">
+                            <ArrowDownRight className="w-4 h-4 text-red-600" />
+                            Expense
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="category" className="text-sm font-medium">
+                      Category <span className="text-red-500">*</span>
+                    </label>
+                    <Select value={formData.category} onValueChange={(value) => handleSelectChange('category', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {currentCategories.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="amount" className="text-sm font-medium">
+                      Amount <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      id="amount"
+                      name="amount"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formData.amount}
+                      onChange={handleChange}
+                      placeholder="0.00"
+                      required
+                    />
                   </div>
 
                   <div className="space-y-2">
