@@ -11,7 +11,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Mail, Loader2 } from 'lucide-react'
 
-const LoginDialog = ({ open, onOpenChange, onLoginSuccess }) => {
+const LoginDialog = ({ open, onOpenChange, onLoginSuccess, preventClose = false }) => {
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
   const [step, setStep] = useState('email') // 'email' or 'otp'
@@ -90,7 +90,12 @@ const LoginDialog = ({ open, onOpenChange, onLoginSuccess }) => {
     }
   }
 
-  const handleClose = () => {
+  const handleClose = (open) => {
+    // Prevent closing if preventClose is true
+    if (preventClose && !open) {
+      return
+    }
+    
     setEmail('')
     setOtp('')
     setStep('email')

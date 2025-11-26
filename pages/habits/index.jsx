@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Trash2, Plus, Check, TrendingUp, X, Minus, LogOut, User } from 'lucide-react'
+import { Trash2, Plus, Check, TrendingUp, X, Minus, LogOut, User, AlertTriangle } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Pagination,
@@ -37,17 +37,32 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import LoginDialog from '@/components/auth/LoginDialog'
+import Sidebar from '@/components/Sidebar'
+import { useToast } from '@/hooks/use-toast'
 import { getToken, getUser, clearAuth, getAuthHeaders } from '@/lib/auth'
 
 const ITEMS_PER_PAGE = 5
 
 const index = () => {
+  const { toast } = useToast()
   const [habits, setHabits] = useState([])
   const [tracking, setTracking] = useState([])
   const [loading, setLoading] = useState(true)
   const [trackingLoading, setTrackingLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [habitToDelete, setHabitToDelete] = useState(null)
   const [loginDialogOpen, setLoginDialogOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState(null)
@@ -163,7 +178,11 @@ const index = () => {
     
     // Validation
     if (!formData.name || !formData.reason || !formData.duration || !formData.reward) {
-      alert('Please fill in all fields')
+      toast({
+        variant: "destructive",
+        title: "Validation Error",
+        description: "Please fill in all fields",
+      })
       return
     }
 
@@ -191,21 +210,28 @@ const index = () => {
     }
   }
 
-  const handleDelete = async (id) => {
-    if (confirm('Are you sure you want to delete this habit?')) {
-      try {
-        const response = await fetch(`/api/habits/${id}`, {
-          method: 'DELETE',
-          headers: getAuthHeaders(),
-        })
+  const handleDeleteClick = (id) => {
+    setHabitToDelete(id)
+    setDeleteDialogOpen(true)
+  }
 
-        if (response.ok) {
-          await fetchHabits()
-          await fetchTodayTracking()
-        }
-      } catch (error) {
-        console.error('Error deleting habit:', error)
+  const handleDeleteConfirm = async () => {
+    if (!habitToDelete) return
+
+    try {
+      const response = await fetch(`/api/habits/${habitToDelete}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      })
+
+      if (response.ok) {
+        await fetchHabits()
+        await fetchTodayTracking()
+        setDeleteDialogOpen(false)
+        setHabitToDelete(null)
       }
+    } catch (error) {
+      console.error('Error deleting habit:', error)
     }
   }
 
@@ -259,11 +285,19 @@ const index = () => {
         await fetchTodayTracking()
       } else {
         const error = await response.json()
-        alert(error.error || 'Failed to update tracking')
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error.error || 'Failed to update tracking',
+        })
       }
     } catch (error) {
       console.error('Error updating tracking:', error)
-      alert('Failed to update tracking')
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: 'Failed to update tracking',
+      })
     }
   }
 
@@ -275,11 +309,19 @@ const index = () => {
       })
       if (response.ok) {
         await fetchTodayTracking()
-        alert('Daily entries created successfully!')
+        toast({
+          variant: "success",
+          title: "Success",
+          description: "Daily entries created successfully!",
+        })
       }
     } catch (error) {
       console.error('Error creating daily entries:', error)
-      alert('Failed to create daily entries')
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: 'Failed to create daily entries',
+      })
     }
   }
 
@@ -385,8 +427,9 @@ const index = () => {
         onOpenChange={setLoginDialogOpen}
         onLoginSuccess={handleLoginSuccess}
       />
-      <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+      <Sidebar>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">Habits</h1>
             <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
@@ -497,7 +540,7 @@ const index = () => {
           </div>
         </div>
 
-      {loading ? (
+        {loading ? (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-400">Loading habits...</p>
@@ -569,10 +612,10 @@ const index = () => {
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
-                            variant="ghost"
+                            variant="destructive"
                             size="icon"
-                            onClick={() => handleDelete(habit._id)}
-                            className="h-9 w-9 text-destructive hover:text-destructive hover:bg-red-50 dark:hover:bg-red-900/20"
+                            onClick={() => handleDeleteClick(habit._id)}
+                            className="h-9 w-9"
                             title="Delete habit"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -602,10 +645,10 @@ const index = () => {
                       <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{habit.reason}</p>
                     </div>
                     <Button
-                      variant="ghost"
+                      variant="destructive"
                       size="icon"
-                      onClick={() => handleDelete(habit._id)}
-                      className="h-7 w-7 text-destructive hover:bg-red-50 dark:hover:bg-red-900/20 shrink-0"
+                      onClick={() => handleDeleteClick(habit._id)}
+                      className="h-7 w-7 shrink-0"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
@@ -843,7 +886,46 @@ const index = () => {
           </>
         )}
       </div>
-      </div>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent className="sm:max-w-[425px]">
+            <div className="flex items-start gap-4">
+              <div className="shrink-0">
+                <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-destructive" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-xl font-semibold">
+                    Delete Habit?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-base mt-2">
+                    Are you sure you want to delete this habit? This action cannot be undone and all associated tracking data will be permanently removed.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="mt-6 sm:mt-6">
+                  <AlertDialogCancel 
+                    onClick={() => setHabitToDelete(null)}
+                    className="sm:mt-0"
+                  >
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteConfirm}
+                    className="bg-destructive hover:bg-destructive/90 focus:ring-destructive"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </div>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
+        </div>
+      </Sidebar>
     </>
   )
 }
