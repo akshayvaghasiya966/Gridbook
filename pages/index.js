@@ -7,7 +7,9 @@ import {
   Target, 
   Moon, 
   BookOpen, 
-  AlertCircle 
+  AlertCircle,
+  CheckSquare,
+  Calculator
 } from 'lucide-react'
 
 const Index = () => {
@@ -55,6 +57,20 @@ const Index = () => {
       icon: AlertCircle,
       description: 'Learn from your mistakes and track improvements.',
       color: 'bg-red-500/10 text-red-600 dark:text-red-400'
+    },
+    {
+      path: '/todos',
+      label: 'Todos',
+      icon: CheckSquare,
+      description: 'Organize and track your tasks and to-do lists.',
+      color: 'bg-teal-500/10 text-teal-600 dark:text-teal-400'
+    },
+    {
+      path: '/formulas',
+      label: 'Formulas',
+      icon: Calculator,
+      description: 'Save and manage your frequently used formulas.',
+      color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
     },
   ]
 
