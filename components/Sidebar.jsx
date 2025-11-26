@@ -8,6 +8,7 @@ import {
   BookOpen, 
   AlertCircle,
   CheckSquare,
+  Calculator,
   Menu,
   X,
   LogOut
@@ -24,6 +25,7 @@ const navigationItems = [
   { path: '/journal', label: 'Journal', icon: BookOpen },
   { path: '/mistakes', label: 'Mistakes', icon: AlertCircle },
   { path: '/todos', label: 'Todos', icon: CheckSquare },
+  { path: '/formulas', label: 'Formulas', icon: Calculator },
 ]
 
 const Sidebar = ({ children }) => {
